@@ -6,6 +6,7 @@ const axios = require("axios");
 const os = require('os');
 const fs = require("fs");
 const path = require("path");
+require('dotenv').config();
 const { promisify } = require('util');
 const exec = promisify(require('child_process').exec);
 const { execSync } = require('child_process');
@@ -28,15 +29,13 @@ const HY2_PORT = process.env.HY2_PORT || '';                 // hy2端口，支�
 const ANYTLS_PORT = process.env.ANYTLS_PORT || '';           // AnyTLS端口，支持多端口的可以填写，否则留空
 const REALITY_PORT = process.env.REALITY_PORT || '';         // reality端口，支持多端口的可以填写，否则留空
 const ANYREALITY_PORT = process.env.ANYREALITY_PORT || '';   // Anyr-eality端口，支持多端口的可以填写，否则留空
-const CFIP = process.env.CFIP || 'cdns.doon.eu.org';         // 优选域名或优选IP
+const CFIP = process.env.CFIP || 'saas.sin.fan';             // 优选域名或优选IP
 const CFPORT = process.env.CFPORT || 443;                    // 优选域名或优选IP对应端口
 const PORT = process.env.PORT || 3000;                       // http订阅端口    
 const NAME = process.env.NAME || '';                         // 节点名称
 const CHAT_ID = process.env.CHAT_ID || '';                   // Telegram chat_id  两个变量不全不推送节点到TG 
 const BOT_TOKEN = process.env.BOT_TOKEN || '';               // Telegram bot_token 两个变量不全不推送节点到TG 
 const DISABLE_ARGO = process.env.DISABLE_ARGO || false;      // 设置为 true 时禁用argo,false开启
-
-require('dotenv').config();
 
 //创建运行文件夹
 if (!fs.existsSync(FILE_PATH)) {
@@ -932,14 +931,14 @@ async function getMetaInfo() {
   try {
     const response1 = await axios.get('https://api.ip.sb/geoip', { headers: { 'User-Agent': 'Mozilla/5.0', timeout: 3000 }});
     if (response1.data && response1.data.country_code && response1.data.isp) {
-      return `${response1.data.country_code}_${response1.data.isp}`.replace(/\s+/g, '_');
+      return `${response1.data.country_code}-${response1.data.isp}`.replace(/\s+/g, '_');
     }
   } catch (error) {
       try {
         // 备用 ip-api.com 获取isp
         const response2 = await axios.get('http://ip-api.com/json', { headers: { 'User-Agent': 'Mozilla/5.0', timeout: 3000 }});
         if (response2.data && response2.data.status === 'success' && response2.data.countryCode && response2.data.org) {
-          return `${response2.data.countryCode}_${response2.data.org}`.replace(/\s+/g, '_');
+          return `${response2.data.countryCode}-${response2.data.org}`.replace(/\s+/g, '_');
         }
       } catch (error) {
         // console.error('Backup API also failed');
@@ -1022,9 +1021,9 @@ async function generateLinks(argoDomain) {
 
       // 打印 sub.txt 内容到控制台
       console.log('\x1b[32m' + Buffer.from(subTxt).toString('base64') + '\x1b[0m'); // 输出绿色
+      console.log('\x1b[35m' + 'Logs will be deleted in 90 seconds,you can copy the above nodes' + '\x1b[0m'); // 洋红色
       fs.writeFileSync(subPath, Buffer.from(subTxt).toString('base64'));
       fs.writeFileSync(listPath, subTxt, 'utf8');
-      console.log('\nLogs will be deleted in 90 seconds,you can copy the above nodes');
       console.log(`${FILE_PATH}/sub.txt saved successfully`);
       sendTelegram(); // 发送tg消息提醒
       uplodNodes(); // 推送节点到订阅器
@@ -1177,7 +1176,7 @@ app.get("/", async function(req, res) {
     const data = await fs.promises.readFile(filePath, 'utf8');
     res.send(data);
   } catch (err) {
-    res.send("Hello world!<br><br>You can visit /{SUB_PATH}(Default: /sub) get your nodes!");
+    res.send("Hello world!<br><br>You can access /{SUB_PATH}(Default: /sub) get your nodes!");
   }
 });
 
